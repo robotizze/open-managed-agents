@@ -233,3 +233,26 @@ it("rechecks admin permission when membership changes during removal", async () 
     ).first(),
   ).toEqual({ role: "member" });
 });
+
+
+describe("GETTER bulk invitations", () => {
+  it("rejects non-company recipients and enforces owner/admin roles", async () => {
+    const body = {emails: ["person@gmail.com"], role: "member", mode: "links"};
+    expect((await request("/t/invitations/bulk", "owner", "POST", body)).status).toBe(400);
+    expect((await request("/t/invitations/bulk", "member", "POST", body)).status).toBe(403);
+    expect((await request("/t/invitations/bulk", "admin", "POST", {...body, role:"admin"})).status).toBe(403);
+  });
+  it("deduplicates recipients and binds acceptance to the invited identity", async () => {
+    const scoped = new Hono();
+    scoped.use("*", async (c,next) => { c.set("user_id" as never, c.req.header("x-test-user") as never); await next(); });
+    scoped.route("/tenants", buildTenantRoutes({services: {} as never, memberSql:sql, invitationBaseUrl:"https://getter.example", loadMemberUser: async id => ({emailVerified:true, email: id === "invited" ? "person@executive.com.br" : "other@executive.com.br"})}));
+    const res = await scoped.request("/tenants/t/invitations/bulk", {method:"POST",headers:{"x-test-user":"owner","content-type":"application/json"},body:JSON.stringify({emails:["PERSON@executive.com.br","person@executive.com.br"],role:"member",mode:"links"})});
+    expect(res.status).toBe(201);
+    const {data} = await res.json(); expect(data).toHaveLength(1);
+    const token = data[0].link.split("#")[1];
+    const accept = (user:string) => scoped.request("/tenants/invitations/accept",{method:"POST",headers:{"x-test-user":user,"content-type":"application/json"},body:JSON.stringify({token})});
+    expect((await accept("outsider")).status).toBe(403);
+    expect((await accept("invited")).status).toBe(200);
+    expect((await accept("invited")).status).toBe(410);
+  });
+});

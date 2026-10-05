@@ -95,7 +95,7 @@ export function buildTenantRoutes(deps: TenantRoutesDeps) {
     );
   });
 
-  if (deps.memberSql) app.route("/", buildMemberRoutes({ memberSql: deps.memberSql, loadMemberUser: deps.loadMemberUser }));
+  if (deps.memberSql) app.route("/", buildMemberRoutes({ memberSql: deps.memberSql, loadMemberUser: deps.loadMemberUser, invitationBaseUrl: deps.invitationBaseUrl, sendInvitation: deps.sendInvitation }));
   return app;
 }
 

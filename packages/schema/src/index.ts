@@ -246,6 +246,11 @@ export async function applyTenantSchema(sql: SqlClient): Promise<void> {
       "accepted_by" TEXT,
       "claim_id" TEXT
     );
+    CREATE TABLE IF NOT EXISTS "getter_invitation_email" (
+      "invitation_id" TEXT PRIMARY KEY NOT NULL,
+      "email" TEXT NOT NULL,
+      "delivery_status" TEXT NOT NULL
+    );
     CREATE INDEX IF NOT EXISTS "idx_tenant_invitation_tenant" ON "tenant_invitation" ("tenant_id");
     CREATE INDEX IF NOT EXISTS "idx_membership_user"
       ON "membership" ("user_id");

@@ -451,9 +451,14 @@ export async function mountNodeHttp(runtime: NodeRuntime, disposables: Disposabl
     },
     mintApiKey: (input) => mintApiKeyOnStorage(apiKeyStorage, input),
   }));
-  v1.route("/oma/tenants", buildTenantRoutes({ services, memberSql: sql, loadMemberUser: async (id) => {
+  v1.route("/oma/tenants", buildTenantRoutes({ services, memberSql: sql,
+    invitationBaseUrl: config.http.publicBaseUrl,
+    sendInvitation: runtime.email ? async (to, link) => {
+      await runtime.email!.send({ to, subject: "Convite para GETTER AI", text: `Você foi convidado para o portal GETTER AI. Entre com sua conta ${to} e aceite o convite: ${link}\nO convite expira em 7 dias.`, html: `<p>Você foi convidado para o portal GETTER AI.</p><p>Entre com sua conta ${to} e <a href="${link}">aceite o convite</a>.</p><p>O convite expira em 7 dias.</p>` });
+    } : undefined,
+    loadMemberUser: async (id) => {
     const user = auth ? await auth.findUser(id) : null;
-    return user ? { name: user.name, email: user.email ?? undefined } : null;
+    return user ? { name: user.name, email: user.email ?? undefined, emailVerified: user.emailVerified } : null;
   } }));
   v1.route("/oma/api_keys", buildApiKeyRoutes({ storage: apiKeyStorage }));
   v1.route("/oma/evals", buildEvalRoutes({

@@ -6,9 +6,11 @@ import type { SqlClient } from "@open-managed-agents/sql-client";
 type Vars = { Variables: { tenant_id: string; user_id?: string } };
 export interface MemberRoutesDeps {
   memberSql: SqlClient;
+  invitationBaseUrl?: string;
+  sendInvitation?: (email: string, link: string) => Promise<void>;
   loadMemberUser?: (
     id: string,
-  ) => Promise<{ name?: string | null; email?: string } | null>;
+  ) => Promise<{ name?: string | null; email?: string; emailVerified?: boolean } | null>;
 }
 const validRole = (role: unknown): role is "admin" | "member" =>
   role === "admin" || role === "member";
@@ -25,6 +27,8 @@ async function hash(token: string) {
 export function buildMemberRoutes({
   memberSql: sql,
   loadMemberUser,
+  invitationBaseUrl,
+  sendInvitation,
 }: MemberRoutesDeps) {
   const app = new Hono<Vars>();
   const roleFor = async (c: Context<Vars>) => {
@@ -49,6 +53,12 @@ export function buildMemberRoutes({
     if (!body || typeof body.token !== "string" || body.token.length > 256)
       return c.json({ error: "Invitation token is required" }, 400);
     const tokenHash = await hash(body.token);
+    const binding = await sql.prepare("SELECT email FROM getter_invitation_email WHERE invitation_id = (SELECT id FROM tenant_invitation WHERE token_hash = ?)").bind(tokenHash).first<{email: string}>();
+    if (binding) {
+      const user = await loadMemberUser?.(c.var.user_id);
+      if (!user?.email || user.emailVerified !== true || user.email.toLowerCase() !== binding.email)
+        return c.json({ error: "Entre com a conta de e-mail que recebeu o convite." }, 403);
+    }
     const claim = nanoid(32);
     const now = Date.now();
     // Claim and membership insert commit together. A fresh claim id prevents a
@@ -176,12 +186,58 @@ export function buildMemberRoutes({
     if (role !== "owner" && role !== "admin") return denied(c);
     const rows = await sql
       .prepare(
-        `SELECT id, role, created_by, created_at, expires_at FROM tenant_invitation
+        `SELECT id, role, created_by, created_at, expires_at, (SELECT email FROM getter_invitation_email WHERE invitation_id = tenant_invitation.id) AS email, (SELECT delivery_status FROM getter_invitation_email WHERE invitation_id = tenant_invitation.id) AS delivery_status FROM tenant_invitation
       WHERE tenant_id = ? AND accepted_by IS NULL AND expires_at > ? ORDER BY created_at DESC`,
       )
       .bind(c.req.param("tenantId"), Date.now())
       .all();
     return c.json({ data: rows.results ?? [] });
+  });
+
+  app.get("/:tenantId/invitations/config", async (c) => {
+    const role = await roleFor(c);
+    if (role !== "owner" && role !== "admin") return denied(c);
+    return c.json({ email_enabled: !!sendInvitation, domain: "executive.com.br", max_batch: 100 });
+  });
+
+  app.post("/:tenantId/invitations/bulk", async (c) => {
+    const role = await roleFor(c);
+    if (role !== "owner" && role !== "admin") return denied(c);
+    const body = await c.req.json().catch(() => null);
+    if (!validRole(body?.role) || (role !== "owner" && body.role !== "member")) return denied(c);
+    if (!Array.isArray(body.emails) || !body.emails.length || body.emails.length > 100 || !["email", "links"].includes(body.mode))
+      return c.json({ error: "Informe entre 1 e 100 e-mails e um modo válido." }, 400);
+    const emails = [...new Set<string>(body.emails.map((e: unknown) => typeof e === "string" ? e.trim().toLowerCase() : ""))];
+    if (emails.some(e => !/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@executive\.com\.br$/.test(e)))
+      return c.json({ error: "Somente e-mails válidos @executive.com.br são permitidos." }, 400);
+    if (body.mode === "email" && !sendInvitation) return c.json({ error: "Configure o SMTP antes de enviar convites." }, 503);
+    if (!invitationBaseUrl) return c.json({ error: "URL pública do portal não configurada." }, 503);
+    const tenantId = c.req.param("tenantId");
+    const existing = await sql.prepare("SELECT user_id FROM membership WHERE tenant_id = ?").bind(tenantId).all<{user_id: string}>();
+    const memberEmails = new Set((await Promise.all((existing.results ?? []).map(async m => (await loadMemberUser?.(m.user_id))?.email?.toLowerCase()))).filter(Boolean));
+    const data: {email: string; status: string; link?: string}[] = [];
+    for (const email of emails) {
+      if (memberEmails.has(email)) { data.push({email, status: "member"}); continue; }
+      const pending = await sql.prepare("SELECT i.id FROM tenant_invitation i JOIN getter_invitation_email e ON e.invitation_id = i.id WHERE i.tenant_id = ? AND e.email = ? AND i.accepted_by IS NULL AND i.expires_at > ?").bind(tenantId, email, Date.now()).first();
+      if (pending) { data.push({email, status: "pending"}); continue; }
+      const token = nanoid(48), id = `inv_${nanoid(20)}`, now = Date.now();
+      await sql.batch([
+        sql.prepare("INSERT INTO tenant_invitation (id, tenant_id, token_hash, role, created_by, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(id, tenantId, await hash(token), body.role, c.var.user_id, now, now + 7 * 86400000),
+        sql.prepare("INSERT INTO getter_invitation_email (invitation_id, email, delivery_status) VALUES (?, ?, ?)").bind(id, email, "created"),
+      ]);
+      const link = `${invitationBaseUrl.replace(/\/$/, "")}/join#${token}`;
+      if (body.mode === "links") { data.push({email, status: "created", link}); continue; }
+      try {
+        await sendInvitation!(email, link);
+        await sql.prepare("UPDATE getter_invitation_email SET delivery_status = 'sent' WHERE invitation_id = ?").bind(id).run();
+        data.push({email, status: "sent"});
+      } catch {
+        await sql.batch([sql.prepare("DELETE FROM getter_invitation_email WHERE invitation_id = ?").bind(id), sql.prepare("DELETE FROM tenant_invitation WHERE id = ?").bind(id)]);
+        data.push({email, status: "failed"});
+      }
+    }
+    c.header("Cache-Control", "no-store");
+    return c.json({data}, 201);
   });
 
   app.post("/:tenantId/invitations", async (c) => {

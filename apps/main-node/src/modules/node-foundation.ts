@@ -466,6 +466,7 @@ export async function createNodeFoundation(
 
   return {
     config,
+    email: components.email,
     processMode,
     ownsLongLivedProcesses,
     toMarkdownProvider,

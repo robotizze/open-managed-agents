@@ -1,3 +1,4 @@
+import { BulkInvitations } from "./BulkInvitations";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
@@ -96,6 +97,8 @@ interface Invitation {
   id: string;
   role: Role;
   expires_at: number;
+  email?: string;
+  delivery_status?: string;
 }
 interface Members {
   data: Member[];
@@ -264,6 +267,7 @@ export function WorkspaceMembers() {
                 })}
               </ul>
             </section>
+            {canManage && <BulkInvitations base={base} owner={members.role === "owner"} onComplete={load} />}
             {canManage && (
               <section
                 className="space-y-4"
@@ -346,7 +350,7 @@ export function WorkspaceMembers() {
                       >
                         <div>
                           <p className="text-sm text-fg">
-                            {t[invitation.role]}
+                            {invitation.email ? `${invitation.email} · ` : ""}{t[invitation.role]}
                           </p>
                           <p className="text-sm text-fg-muted">
                             {t.expires}:{" "}

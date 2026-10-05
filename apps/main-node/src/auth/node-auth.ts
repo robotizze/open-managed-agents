@@ -28,7 +28,7 @@ export interface NodeAuth {
   /** The signed-in user for a request, or null. */
   resolveSession(headers: Headers): Promise<NodeAuthSession | null>;
   /** Display fields for a user id (tenant membership listings). */
-  findUser(userId: string): Promise<{ name: string | null; email: string | null } | null>;
+  findUser(userId: string): Promise<{ name: string | null; email: string | null; emailVerified?: boolean } | null>;
   stop?(): Promise<void>;
 }
 
@@ -105,7 +105,7 @@ export async function createBetterAuthComponent(
     },
     findUser: async (userId) => {
       const user = await (await auth.$context).internalAdapter.findUserById(userId);
-      return user ? { name: user.name ?? null, email: user.email ?? null } : null;
+      return user ? { name: user.name ?? null, email: user.email ?? null, emailVerified: user.emailVerified === true } : null;
     },
     ...(stop !== undefined && { stop }),
   };

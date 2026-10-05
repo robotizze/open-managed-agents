@@ -123,3 +123,14 @@ it("accepts invitations independently of a stale active workspace", async () => 
   expect(state.acceptHeader).toBe("");
   localStorage.removeItem("oma_active_tenant_id");
 });
+
+it("previews and deduplicates a bulk list before enabling creation", async () => {
+  show(<WorkspaceMembers />);
+  const list = await screen.findByLabelText("Lista de e-mails");
+  await userEvent.type(list, "person@executive.com.br;person@executive.com.br;wrong@gmail.com");
+  expect(screen.getByText(/2 e-mails únicos/)).toBeInTheDocument();
+  expect(screen.getByRole("button", {name:"Gerar 2 convites"})).toBeDisabled();
+  await userEvent.clear(list);
+  await userEvent.type(list, "person@executive.com.br;person@executive.com.br");
+  expect(screen.getByRole("button", {name:"Gerar 1 convites"})).toBeEnabled();
+});
