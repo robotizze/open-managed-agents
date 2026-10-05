@@ -451,6 +451,7 @@ export async function mountNodeHttp(runtime: NodeRuntime, disposables: Disposabl
     },
     mintApiKey: (input) => mintApiKeyOnStorage(apiKeyStorage, input),
   }));
+  await sql.exec("CREATE TABLE IF NOT EXISTS getter_invitation_email (invitation_id TEXT PRIMARY KEY NOT NULL, email TEXT NOT NULL, delivery_status TEXT NOT NULL)");
   v1.route("/oma/tenants", buildTenantRoutes({ services, memberSql: sql,
     invitationBaseUrl: config.http.publicBaseUrl,
     sendInvitation: runtime.email ? async (to, link) => {
