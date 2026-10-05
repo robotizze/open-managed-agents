@@ -661,3 +661,7 @@ body,
     display: none !important;
   }
 }
+
+/* GETTER AI brand overrides. */
+:root { --brand: #28795d; --brand-hover: #20634c; --brand-subtle: #e4f5ed; --brand-fg: #ffffff; }
+.dark { --brand: #5dbb98; --brand-hover: #79ccab; --brand-subtle: #193c2e; --brand-fg: #10271e; }

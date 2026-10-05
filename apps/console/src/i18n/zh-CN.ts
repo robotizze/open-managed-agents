@@ -68,7 +68,7 @@ export const zhCN: Messages = {
     resetPassword: "重置密码",
     resetYourPassword: "重置你的密码",
     signInToWorkspace: "登录你的工作区",
-    getStarted: "开始使用 openma",
+    getStarted: "开始使用 GETTER AI",
     sendCodeToEmail: "我们将向你的邮箱发送一个 6 位验证码",
     codeSentTo: "验证码已发送至",
     sendResetCode: "我们将发送一个验证码来重置你的密码",
@@ -99,7 +99,7 @@ export const zhCN: Messages = {
   },
 
   dashboard: {
-    getStarted: "开始使用 openma",
+    getStarted: "开始使用 GETTER AI",
     handPlatformToAgent:
       "将平台交给你的智能体 — 安装 CLI、生成密钥、指向平台。",
     installCli: "安装 CLI",

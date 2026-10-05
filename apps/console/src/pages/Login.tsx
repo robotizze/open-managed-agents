@@ -366,7 +366,7 @@ export function Login() {
   const isOtpMode = mode === "verify-signup" || mode === "verify-login" || mode === "reset-otp";
 
   const titles: Record<Mode, string> = {
-    chooser: "Log in to openma",
+    chooser: "Log in to GETTER AI",
     login: "Log in with email",
     signup: "Create your account",
     "otp-login": "Sign in with email code",
@@ -379,7 +379,7 @@ export function Login() {
   const subtitles: Record<Mode, string> = {
     chooser: "",
     login: "Use your email and password",
-    signup: "Get started with openma",
+    signup: "Get started with GETTER AI",
     "otp-login": "We'll send a 6-digit code to your email",
     "verify-signup": `We sent a code to ${email}`,
     "verify-login": `We sent a code to ${email}`,
@@ -394,7 +394,7 @@ export function Login() {
     <ModernLoginShell>
       <div className="flex flex-col gap-8">
         <header className="flex flex-col items-center text-center">
-          <Logo size="lg" />
+          <div className="flex items-center gap-3"><Logo size="lg" /><span className="text-xl font-semibold tracking-tight">GETTER AI</span></div>
           <div className="mt-5 space-y-1.5">
             <h1 className="text-lg font-medium tracking-[-0.015em] text-fg">
               {titles[mode]}
@@ -677,7 +677,7 @@ export function Login() {
           )}
           {mode === "login" && (
             <>
-              <span>New to openma?</span>
+              <span>New to GETTER AI?</span>
               <Button
                 type="button"
                 variant="link"

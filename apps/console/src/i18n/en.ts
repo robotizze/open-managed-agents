@@ -68,7 +68,7 @@ export const en: Messages = {
     resetPassword: "Reset password",
     resetYourPassword: "Reset your password",
     signInToWorkspace: "Sign in to your workspace",
-    getStarted: "Get started with openma",
+    getStarted: "Get started with GETTER AI",
     sendCodeToEmail: "We'll send a 6-digit code to your email",
     codeSentTo: "We sent a code to",
     sendResetCode: "We'll send a code to reset your password",
@@ -99,7 +99,7 @@ export const en: Messages = {
   },
 
   dashboard: {
-    getStarted: "Get started with openma",
+    getStarted: "Get started with GETTER AI",
     handPlatformToAgent:
       "Hand the platform to your agent — install the CLI, mint a key, point them at it.",
     installCli: "Install the CLI",

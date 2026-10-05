@@ -82,7 +82,7 @@ describe("Login OAuth and layout", () => {
     const { container } = renderLogin();
 
     expect(
-      screen.getByRole("heading", { name: "Log in to openma" }),
+      screen.getByRole("heading", { name: "Log in to GETTER AI" }),
     ).toBeInTheDocument();
     expect(screen.queryByLabelText("Email")).not.toBeInTheDocument();
     expect(

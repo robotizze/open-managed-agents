@@ -93,7 +93,7 @@ export function Dashboard() {
     <DashboardLayout
       intro={
         <header>
-          <h1>Get started with openma</h1>
+          <h1>Get started with GETTER AI</h1>
           <p>{t.dashboard.handPlatformToAgent}</p>
         </header>
       }

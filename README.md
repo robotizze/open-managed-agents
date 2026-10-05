@@ -1,3 +1,15 @@
+# GETTER AI — Managed Agents
+
+Fork personalizado para a GETTER AI, baseado em [Open Managed Agents](https://github.com/openma-ai/open-managed-agents).
+
+Console: https://openma.20.228.132.208.sslip.io
+
+Identidade visual GETTER, autenticação, armazenamento persistente SQLite e sandbox LiteBox no Coolify. Configure as credenciais dos modelos no console. Licença Apache 2.0 e atribuições preservadas.
+
+Veja [GETTER.md](GETTER.md) para implantação e manutenção.
+
+---
+
 <p align="center">
   <img src="logo.svg" alt="openma" height="80" />
 </p>
