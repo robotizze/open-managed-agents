@@ -13,10 +13,10 @@
     "@open-managed-agents/observability": "workspace:*",
     "@open-managed-agents/sandbox": "workspace:*"
   },
-  "peerDependencies": { "@boxlite-ai/boxlite": "^0.9.0" },
+  "peerDependencies": { "@boxlite-ai/boxlite": "^0.10.6" },
   "peerDependenciesMeta": { "@boxlite-ai/boxlite": { "optional": true } },
   "devDependencies": {
-    "@boxlite-ai/boxlite": "0.9.0",
+    "@boxlite-ai/boxlite": "0.10.6",
     "@types/node": "^26.6.3",
     "vitest": "^4.1.3"
   }

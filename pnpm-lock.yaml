@@ -2583,8 +2583,8 @@ importers:
         version: link:../sandbox
     devDependencies:
       '@boxlite-ai/boxlite':
-        specifier: 0.9.0
-        version: 0.9.0(playwright-core@1.59.1)
+        specifier: 0.10.6
+        version: 0.10.6(playwright-core@1.59.1)
       '@types/node':
         specifier: ^26.6.3
         version: 26.6.3
@@ -3536,8 +3536,8 @@ importers:
         version: link:../sandbox
     devDependencies:
       '@boxlite-ai/boxlite':
-        specifier: 0.9.0
-        version: 0.9.0(playwright-core@1.59.1)
+        specifier: 0.10.6
+        version: 0.10.6(playwright-core@1.59.1)
       '@types/node':
         specifier: ^26.6.3
         version: 26.6.3
@@ -4741,28 +4741,17 @@ packages:
   '@better-fetch/fetch@1.1.21':
     resolution: {integrity: sha512-/ImESw0sskqlVR94jB+5+Pxjf+xBwDZF/N5+y2/q4EqD7IARUTSpPfIo8uf39SYpCxyOCtbyYpUrZ3F/k0zT4A==}
 
-  '@boxlite-ai/boxlite-darwin-arm64@0.9.0':
-    resolution: {integrity: sha512-jOtoxsu/Xd4xTsLIk0t4t6aWbxhGo+wGQqGgu14liGrTN4/nt40P6j+hROmQNoqVUe1mxm2fadVQkBF1JN+XOA==}
-    engines: {node: '>=18.0.0'}
-    cpu: [arm64]
-    os: [darwin]
+  '@boxlite-ai/boxlite-darwin-arm64@0.10.6':
+    optional: true
 
-  '@boxlite-ai/boxlite-linux-arm64-gnu@0.9.0':
-    resolution: {integrity: sha512-24XIZCuhrYqtpFzGueKMmX3A1nU5zcVSJW2poFxOnqitLdKGjbJogf34w6WuIu3I14fED07nqBtwCOq4MU1dww==}
-    engines: {node: '>=18.0.0'}
-    cpu: [arm64]
-    os: [linux]
-    libc: [glibc]
+  '@boxlite-ai/boxlite-linux-arm64-gnu@0.10.6':
+    optional: true
 
-  '@boxlite-ai/boxlite-linux-x64-gnu@0.9.0':
-    resolution: {integrity: sha512-9m46aevVeaeVFQmnRzPe4BNVFMGn18vDx/6L5pJg68rHssXnxjxbEPXtsz9qozyDopTlutdP2AAaZSkJXSpsAw==}
-    engines: {node: '>=18.0.0'}
-    cpu: [x64]
-    os: [linux]
-    libc: [glibc]
+  '@boxlite-ai/boxlite-linux-x64-gnu@0.10.6':
+    optional: true
 
-  '@boxlite-ai/boxlite@0.9.0':
-    resolution: {integrity: sha512-ygWJFnVE1+n8W+V9Yphim+Z6zkIbrhfZMNwc+L4yVvZKtK9WZNpZwqPBMdmzJUVeHZlAhWO2C+XfNPEwavLWNw==}
+  '@boxlite-ai/boxlite@0.10.6':
+    resolution: {integrity: sha512-c1g/aaXdD6c9e3+/mUbAPrEqgy0Z7vxwZFOpgagojkl5WN7Vl+M9NhT/2CRnb0lp0NPr7aBavm5v7Xiv49j7Kg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       playwright-core: '>=1.58.0'
@@ -14939,20 +14928,20 @@ snapshots:
 
   '@better-fetch/fetch@1.1.21': {}
 
-  '@boxlite-ai/boxlite-darwin-arm64@0.9.0':
+  '@boxlite-ai/boxlite-darwin-arm64@0.10.6':
     optional: true
 
-  '@boxlite-ai/boxlite-linux-arm64-gnu@0.9.0':
+  '@boxlite-ai/boxlite-linux-arm64-gnu@0.10.6':
     optional: true
 
-  '@boxlite-ai/boxlite-linux-x64-gnu@0.9.0':
+  '@boxlite-ai/boxlite-linux-x64-gnu@0.10.6':
     optional: true
 
-  '@boxlite-ai/boxlite@0.9.0(playwright-core@1.59.1)':
+  '@boxlite-ai/boxlite@0.10.6(playwright-core@1.59.1)':
     optionalDependencies:
-      '@boxlite-ai/boxlite-darwin-arm64': 0.9.0
-      '@boxlite-ai/boxlite-linux-arm64-gnu': 0.9.0
-      '@boxlite-ai/boxlite-linux-x64-gnu': 0.9.0
+      '@boxlite-ai/boxlite-darwin-arm64': 0.10.6
+      '@boxlite-ai/boxlite-linux-arm64-gnu': 0.10.6
+      '@boxlite-ai/boxlite-linux-x64-gnu': 0.10.6
       playwright-core: 1.59.1
 
   '@braintree/sanitize-url@7.1.2': {}
