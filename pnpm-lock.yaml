@@ -4742,13 +4742,24 @@ packages:
     resolution: {integrity: sha512-/ImESw0sskqlVR94jB+5+Pxjf+xBwDZF/N5+y2/q4EqD7IARUTSpPfIo8uf39SYpCxyOCtbyYpUrZ3F/k0zT4A==}
 
   '@boxlite-ai/boxlite-darwin-arm64@0.10.6':
-    optional: true
+    resolution: {integrity: sha512-Tar6/z05SwQVQNTiyBEwiIORt4UZmL+XGQQLT+vROYwspu7hzf5aeFbEZGmM0SN9vrH+PvmIsDsN3YZQsrb6Fg==}
+    engines: {node: '>=18.0.0'}
+    cpu: [arm64]
+    os: [darwin]
 
   '@boxlite-ai/boxlite-linux-arm64-gnu@0.10.6':
-    optional: true
+    resolution: {integrity: sha512-HeTgKvA6a1qHmODwtVZZ1hED+RNiprnZeGxL62dmf1tQikgxmovsQ2XjJ4Xa0ldDyy/YSIfrOPw8UnorrqVaSw==}
+    engines: {node: '>=18.0.0'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
 
   '@boxlite-ai/boxlite-linux-x64-gnu@0.10.6':
-    optional: true
+    resolution: {integrity: sha512-5Fp0bDUhQ7tLMmhoYgkk7JNgyIKvi8Q+poV53I94ZrrGfTYucIYqHTM4c6diLSykhySha0dQB5IZ4WCdq6N56Q==}
+    engines: {node: '>=18.0.0'}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
 
   '@boxlite-ai/boxlite@0.10.6':
     resolution: {integrity: sha512-c1g/aaXdD6c9e3+/mUbAPrEqgy0Z7vxwZFOpgagojkl5WN7Vl+M9NhT/2CRnb0lp0NPr7aBavm5v7Xiv49j7Kg==}
