@@ -40,3 +40,7 @@ allowBuilds:
   sharp: true
   ssh2: false
   workerd: true
+
+# Preserve opaque Gemini tool-call signatures until Pi ships its upstream fix.
+patchedDependencies:
+  "@earendil-works/pi-ai@1.1.0": patches/pi-ai-gemini-thought-signatures.patch

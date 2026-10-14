@@ -1,0 +1,42 @@
+diff --git a/dist/api/openai-completions.js b/dist/api/openai-completions.js
+index a60f3935..412a8fbb 100644
+--- a/dist/api/openai-completions.js
++++ b/dist/api/openai-completions.js
+@@ -98,6 +98,16 @@ function parseOpenAIReasoningDetails(signature) {
+         return undefined;
+     }
+ }
++function isGoogleOpenAIEndpoint(model) {
++    try {
++        const url = new URL(model.baseUrl);
++        return url.hostname === "generativelanguage.googleapis.com" &&
++            /^\/v1(?:beta|alpha)?\/openai\/?$/.test(url.pathname);
++    }
++    catch {
++        return false;
++    }
++}
+ function parseLegacyEncryptedReasoningDetail(signature) {
+     if (!signature)
+         return undefined;
+@@ -434,6 +444,10 @@ export const stream = (model, context, options) => {
+                             if (!block.name && name) {
+                                 block.name = name;
+                             }
++                            const thoughtSignature = toolCall.extra_content?.google?.thought_signature;
++                            if (isGoogleOpenAIEndpoint(model) && typeof thoughtSignature === "string" && thoughtSignature.length > 0) {
++                                block.thoughtSignature = thoughtSignature;
++                            }
+                             let delta = "";
+                             if (toolCall.function?.arguments) {
+                                 delta = toolCall.function.arguments;
+@@ -1038,6 +1052,9 @@ export function convertMessages(model, context, compat, options) {
+                             name: tc.name,
+                             arguments: JSON.stringify(tc.arguments),
+                         },
++                        ...(isGoogleOpenAIEndpoint(model) && typeof tc.thoughtSignature === "string" && tc.thoughtSignature.length > 0 && !parseLegacyEncryptedReasoningDetail(tc.thoughtSignature)
++                            ? { extra_content: { google: { thought_signature: tc.thoughtSignature } } }
++                            : {}),
+                     };
+                 });
+             }
