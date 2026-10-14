@@ -56,11 +56,23 @@ import { createFsSessionOutputSource } from "../lib/fs-session-output-source.js"
 import { createAuthMiddleware as buildAuthMw, type ApiKeyResolution } from "@open-managed-agents/auth";
 import { ensureTenantSqlite } from "@open-managed-agents/auth-config";
 
-import { relative } from "node:path";
+import { join, relative } from "node:path";
+import { readFileSync } from "node:fs";
+import {
+  BRANDING_PATH,
+  brandIndexHtml,
+  loadConsoleBranding,
+  safeBrandingFile,
+  staticRoot,
+} from "../lib/console-branding.js";
 
 import { buildNodeSkillsRoutes } from "../lib/node-skills-routes.js";
+import { buildSkillSourcesRoutes, createSourceFetcher } from "../lib/skill-sources.js";
+import { SqlKvStore } from "@open-managed-agents/kv-store/adapters/sql";
 
+import { buildNodeHttpInferenceProxyRoutes } from "../lib/http-inference-proxy.js";
 import { buildNodeHttpMcpProxyRoutes } from "../lib/http-mcp-proxy.js";
+import { createNodeAccessLossRuntime } from "../lib/mcp-access-loss.js";
 
 import { Disposables } from "../lifecycle.js";
 
@@ -102,6 +114,7 @@ export async function mountNodeHttp(runtime: NodeRuntime, disposables: Disposabl
     realtimeDescription,
     sessionRegistry,
     resolveNodeMcpProxyTarget,
+    resolveNodeInferenceUpstream,
     managedRuntimeRunner,
     managedRuntimeReaders,
     managedSessionRuntimeStream,
@@ -181,17 +194,22 @@ export async function mountNodeHttp(runtime: NodeRuntime, disposables: Disposabl
     }),
   );
 
+  const signInMethods = auth?.signInMethods;
   app.get("/auth-info", (c) =>
     c.json({
       providers: authDisabled
         ? []
         : listAuthProviders({
             emailOtp: config.auth.requireEmailVerify,
+            emailPassword: signInMethods?.emailPassword ?? true,
             googleClientId: config.auth.google.clientId,
             googleClientSecret: config.auth.google.clientSecret,
             githubClientId: config.auth.github.clientId,
             githubClientSecret: config.auth.github.clientSecret,
           }),
+      // Deployment-configured OpenID Connect providers: [{ id, name }].
+      oidc: authDisabled ? [] : signInMethods?.oidc ?? [],
+      email_password: !authDisabled && (signInMethods?.emailPassword ?? true),
       turnstile_site_key: null,
     }),
   );
@@ -393,6 +411,10 @@ export async function mountNodeHttp(runtime: NodeRuntime, disposables: Disposabl
   }));
   v1.route("/oma/mcp-proxy", buildNodeHttpMcpProxyRoutes({
     resolveTarget: resolveNodeMcpProxyTarget,
+    accessLoss: await createNodeAccessLossRuntime(sql),
+  }));
+  v1.route("/oma/inference-proxy", buildNodeHttpInferenceProxyRoutes({
+    resolveUpstream: resolveNodeInferenceUpstream,
   }));
   v1.route("/vaults", managedVaultsRoutes);
   v1.route("/vaults", managedCredentialsRoutes);
@@ -492,6 +514,17 @@ export async function mountNodeHttp(runtime: NodeRuntime, disposables: Disposabl
 
   // OMA-only stubs used by the self-hosted console.
   v1.route("/oma/skills", buildNodeSkillsRoutes({ db: drizzleDb, blobs: filesBlob }));
+  v1.route("/oma/skill-sources", buildSkillSourcesRoutes({
+    fetcher: createSourceFetcher({ allowHosts: config.skillSources.allowHosts }),
+    kvFor: (tenantId) => new SqlKvStore({ db: drizzleDb, tenantId }),
+    skillsFor: (tenantId) => {
+      const managedApp = managedPlatform.app({ workspaceId: tenantId });
+      return {
+        skills: managedApp.port(managedAgentsPortTokens.skills),
+        versions: managedApp.port(managedAgentsPortTokens.skillVersions),
+      };
+    },
+  }));
   v1.get("/oma/runtimes", (c) => c.json({ data: [] }));
   v1.get("/oma/stats", async (c) => {
     const tenantId = c.get("tenant_id");
@@ -936,6 +969,27 @@ export async function mountNodeHttp(runtime: NodeRuntime, disposables: Disposabl
   });
   void _capResolver;
 
+  // ── Console branding (optional) ──
+  // Served whether or not this process serves the console, so a console on
+  // another origin (or the Vite dev server's proxy) can read it too.
+  const brandingDir = config.http.brandingDir;
+  const branding = brandingDir ? loadConsoleBranding(brandingDir) : null;
+  if (brandingDir && branding) {
+    const brandingRoot = staticRoot(brandingDir);
+    app.get(`${BRANDING_PATH}/branding.json`, (c) =>
+      c.json(branding, 200, { "cache-control": "no-cache" }),
+    );
+    app.get(`${BRANDING_PATH}/*`, async (c, next) => {
+      const name = c.req.path.slice(BRANDING_PATH.length + 1);
+      if (!safeBrandingFile(name)) return c.json({ error: "not found" }, 404);
+      return serveStatic({
+        root: brandingRoot,
+        rewriteRequestPath: (path) => path.slice(BRANDING_PATH.length),
+      })(c, next);
+    });
+    logger.info({ op: "main-node.console_branding", dir: brandingDir, product_name: branding.product_name }, "console branding served");
+  }
+
   // ── Console UI (optional) ──
   const consoleDir = config.http.consoleDir;
   if (consoleDir) {
@@ -943,6 +997,16 @@ export async function mountNodeHttp(runtime: NodeRuntime, disposables: Disposabl
     const rootRel = consoleDir.startsWith("/")
       ? relative(cwd, consoleDir)
       : consoleDir;
+    // With branding, index.html carries the title, favicon, and stylesheet
+    // so the first paint is already branded.
+    let brandedIndex: string | null = null;
+    const indexHtml = branding
+      ? () => (brandedIndex ??= brandIndexHtml(readFileSync(join(consoleDir, "index.html"), "utf8"), branding))
+      : null;
+    if (indexHtml) {
+      app.get("/", (c) => c.html(indexHtml()));
+      app.get("/index.html", (c) => c.html(indexHtml()));
+    }
     app.use("/*", serveStatic({ root: rootRel }));
     // SPA fallback for client-side routes ONLY. Never serve index.html for
     // API/auth/health paths — a missing /v1/* handler used to fall through
@@ -955,10 +1019,12 @@ export async function mountNodeHttp(runtime: NodeRuntime, disposables: Disposabl
         p.startsWith("/v1/") ||
         p.startsWith("/auth") ||
         p.startsWith("/linear") ||
-        p.startsWith("/github")
+        p.startsWith("/github") ||
+        p.startsWith(BRANDING_PATH)
       ) {
         return next();
       }
+      if (indexHtml) return c.html(indexHtml());
       return serveStatic({ root: rootRel, path: "index.html" })(c, next);
     });
     logger.info({ op: "main-node.console_ui", dir: consoleDir, cwd_rel: rootRel }, "console UI served");

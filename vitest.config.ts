@@ -72,6 +72,7 @@ const cfWorkerOptions = {
       // and model_cards.api_key_cipher. Tests don't care about the value as
       // long as it's stable across encrypt/decrypt within a single process.
       PLATFORM_ROOT_SECRET: "test-platform-root-secret-padded-to-thirtytwo",
+      INTEGRATIONS_INTERNAL_SECRET: "test-internal-secret",
       RATE_LIMIT_WRITE: 10000,
       RATE_LIMIT_READ: 10000,
     },
@@ -326,6 +327,10 @@ export default defineConfig({
       { find: "@open-managed-agents/quotas", replacement: "./packages/quotas/src/index.ts" },
       { find: "@open-managed-agents/rate-limit", replacement: "./packages/rate-limit/src/index.ts" },
       { find: "@open-managed-agents/vault-forward", replacement: "./packages/vault-forward/src/index.ts" },
+      { find: "@open-managed-agents/mcp-access-loss", replacement: "./packages/mcp-access-loss/src/index.ts" },
+      { find: "@open-managed-agents/slack", replacement: "./packages/slack/src/index.ts" },
+      { find: "@open-managed-agents/linear", replacement: "./packages/linear/src/index.ts" },
+      { find: "@open-managed-agents/github", replacement: "./packages/github/src/index.ts" },
       { find: "@open-managed-agents/schema", replacement: "./packages/schema/src/index.ts" },
       { find: "@open-managed-agents/http-routes", replacement: "./packages/http-routes/src/index.ts" },
       { find: "@open-managed-agents/integrations-core", replacement: "./packages/integrations-core/src/index.ts" },
@@ -346,6 +351,10 @@ export default defineConfig({
       { find: "@open-managed-agents/acp-runtime/sandbox-spawner", replacement: "./packages/acp-runtime/src/spawners/sandbox.ts" },
       { find: "@open-managed-agents/acp-runtime/node-spawner", replacement: "./packages/acp-runtime/src/node-spawner.ts" },
       { find: "@open-managed-agents/acp-runtime/registry", replacement: "./packages/acp-runtime/src/registry.ts" },
+      {
+        find: "@open-managed-agents/acp-runtime/inference-config",
+        replacement: "./packages/acp-runtime/src/inference/index.ts",
+      },
       { find: "@open-managed-agents/acp-runtime", replacement: "./packages/acp-runtime/src/index.ts" },
 
       // ─── v2 composition SDK (package name intentionally shorter than folder) ───
