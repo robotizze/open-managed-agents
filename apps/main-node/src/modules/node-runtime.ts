@@ -25,6 +25,7 @@ export async function createNodeRuntime(
   const foundation = await createNodeFoundation(components, disposables, log);
   const {
     config,
+    email,
     processMode,
     ownsLongLivedProcesses,
     logger,
@@ -241,6 +242,7 @@ export async function createNodeRuntime(
 
   return {
     config,
+    email,
     processMode,
     ownsLongLivedProcesses,
     logger,
