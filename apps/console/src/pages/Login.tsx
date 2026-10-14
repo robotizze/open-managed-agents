@@ -412,7 +412,12 @@ export function Login() {
     <ModernLoginShell>
       <div className="flex flex-col gap-8">
         <header className="flex flex-col items-center text-center">
-          <div className="flex items-center gap-3"><Logo size="lg" /><span className="text-xl font-semibold tracking-tight">{branding.productName}</span></div>
+          <div className="flex w-full max-w-full flex-wrap items-center justify-center gap-3">
+            <Logo size="lg" />
+            <span className="min-w-0 max-w-full break-words text-xl font-semibold tracking-tight">
+              {branding.productName}
+            </span>
+          </div>
           <div className="mt-5 space-y-1.5">
             <h1 className="text-lg font-medium tracking-[-0.015em] text-fg">
               {titles[mode]}
