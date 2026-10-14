@@ -358,6 +358,14 @@ function toRow(r: typeof model_cards.$inferSelect): ModelCardRow {
 }
 
 function msToIso(ms: number | string | bigint): string {
+  if (typeof ms === "string" && !/^[+-]?\d+$/.test(ms)) {
+    // Legacy SQLite rows can contain the ISO strings emitted by toISOString()
+    // even in INTEGER columns. Only accept that canonical form; Date alone
+    // also accepts ambiguous text and silently normalizes invalid dates.
+    const iso = new Date(ms).toISOString();
+    if (iso !== ms) throw new RangeError("Invalid model card timestamp");
+    return iso;
+  }
   return new Date(Number(ms)).toISOString();
 }
 
